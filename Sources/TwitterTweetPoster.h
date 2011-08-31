@@ -27,8 +27,10 @@
 @property (nonatomic,retain) TwitterToken* token;
 @property (nonatomic,retain) id<TwitterTweetPosterDelegate> delegate;
 @property (nonatomic,retain) NSString* message;
+@property (nonatomic,retain) UIImage *media;
 
 - (void) execute;
+- (void) executeWithMedia;
 - (void) cancel;
 
 @end

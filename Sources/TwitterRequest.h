@@ -41,6 +41,7 @@
 	NSURLConnection* _connection;
 	NSMutableData* _data;
 	NSInteger _statusCode;
+    BOOL useMultipart;
 }
 
 @property (nonatomic,retain) TwitterConsumer* twitterConsumer;

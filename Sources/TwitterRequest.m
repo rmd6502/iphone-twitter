@@ -22,6 +22,10 @@
 #import "TwitterRequest.h"
 #import "TwitterUtils.h"
 
+@interface TwitterRequest(Private)
+- (NSMutableString *)packageParameters;
+@end
+
 @implementation TwitterRequest
 
 #pragma mark -
@@ -145,18 +149,7 @@
 
 		// Add the signature to the request parameters (just the call specific ones)
 				
-		normalizedRequestParameters = [NSMutableString string];
-		
-		for (NSString* key in [[_parameters allKeys] sortedArrayUsingSelector: @selector(caseInsensitiveCompare:)])
-		{
-			if ([normalizedRequestParameters length] != 0) {
-				[normalizedRequestParameters appendString: @"&"];
-			}
-			
-			[normalizedRequestParameters appendString: key];
-			[normalizedRequestParameters appendString: @"="];
-			[normalizedRequestParameters appendString: [self _formEncodeString: [_parameters objectForKey: key]]];
-		}
+		normalizedRequestParameters = [self packageParameters];
 		
 		NSLog(@"XXX POST Data = %@", normalizedRequestParameters);
 		
@@ -203,10 +196,37 @@
 		[request setHTTPBody: requestData];
 		[request setValue: authorization forHTTPHeaderField: @"Authorization"];
         [request setValue: [NSString stringWithFormat: @"%d", [requestData length]] forHTTPHeaderField: @"Content-Length"];
-        [request setValue: @"application/x-www-form-urlencoded" forHTTPHeaderField: @"Content-Type"];
+        if (useMultipart) {
+            [request setValue: @"multipart/form-data" forHTTPHeaderField: @"Content-Type"];
+        } else {
+            [request setValue: @"application/x-www-form-urlencoded" forHTTPHeaderField: @"Content-Type"];
+        }
 		
 		_connection = [[NSURLConnection connectionWithRequest: request delegate: self] retain];
 	}
+}
+
+- (NSString *)packageParameters {
+    NSMutableString* normalizedRequestParameters = [NSMutableString string];
+    if ([_parameters objectForKey:@"media[]"] != nil) {
+        useMultipart = YES;
+    }
+    for (NSString* key in [[_parameters allKeys] sortedArrayUsingSelector: @selector(caseInsensitiveCompare:)])
+    {
+        if (useMultipart) {
+            
+        } else {
+            if ([normalizedRequestParameters length] != 0) {
+                [normalizedRequestParameters appendString: @"&"];
+            }
+            
+            [normalizedRequestParameters appendString: key];
+            [normalizedRequestParameters appendString: @"="];
+            [normalizedRequestParameters appendString: [self _formEncodeString: [_parameters objectForKey: key]]];
+        }
+    }
+    
+    return normalizedRequestParameters;
 }
 
 - (void) cancel

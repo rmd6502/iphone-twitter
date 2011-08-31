@@ -11,6 +11,7 @@
 #pragma mark -
 
 @synthesize consumer = _consumer, token = _token, delegate = _delegate, message = _message;
+@synthesize media;
 
 #pragma mark -
 
@@ -46,6 +47,27 @@
 		}
 	}
 }
+
+- (void) executeWithMedia
+{
+	if (_request == nil)
+	{
+		_request = [TwitterRequest new];
+		if (_request != nil) {
+			_request.url = [NSURL URLWithString: @"http://upload.twitter.com/1/statuses/update_with_media.xml"];
+			_request.twitterConsumer = _consumer;
+			_request.token = _token;
+			_request.method = @"POST";
+			_request.parameters = [NSDictionary dictionaryWithObjectsAndKeys: 
+                                   _message, @"status", 
+                                   media, @"media[]",
+                                   nil];
+			_request.delegate = self;		
+			[_request execute];
+		}
+	}
+}
+
 
 - (void) cancel
 {
