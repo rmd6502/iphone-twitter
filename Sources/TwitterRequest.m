@@ -23,7 +23,7 @@
 #import "TwitterUtils.h"
 
 @interface TwitterRequest(Private)
-- (NSMutableString *)packageParameters;
+- (NSMutableData *)packageParameters;
 @end
 
 @implementation TwitterRequest
@@ -149,11 +149,7 @@
 
 		// Add the signature to the request parameters (just the call specific ones)
 				
-		normalizedRequestParameters = [self packageParameters];
-		
-		NSLog(@"XXX POST Data = %@", normalizedRequestParameters);
-		
-		NSData* requestData = [normalizedRequestParameters dataUsingEncoding: NSUTF8StringEncoding];
+		NSData* requestData = [self packageParameters];
 		
 		// Setup the Authorization header
 
@@ -197,7 +193,7 @@
 		[request setValue: authorization forHTTPHeaderField: @"Authorization"];
         [request setValue: [NSString stringWithFormat: @"%d", [requestData length]] forHTTPHeaderField: @"Content-Length"];
         if (useMultipart) {
-            [request setValue: @"multipart/form-data" forHTTPHeaderField: @"Content-Type"];
+            [request setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundary] forHTTPHeaderField: @"Content-Type"];
         } else {
             [request setValue: @"application/x-www-form-urlencoded" forHTTPHeaderField: @"Content-Type"];
         }
@@ -206,24 +202,42 @@
 	}
 }
 
-- (NSString *)packageParameters {
-    NSMutableString* normalizedRequestParameters = [NSMutableString string];
+- (NSMutableData *)packageParameters {
+    NSMutableData* normalizedRequestParameters = [NSMutableData data];
     if ([_parameters objectForKey:@"media[]"] != nil) {
         useMultipart = YES;
+        boundary = @"----RmD01A";
+    }
+    if (useMultipart) {
+        [normalizedRequestParameters appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding] ];
     }
     for (NSString* key in [[_parameters allKeys] sortedArrayUsingSelector: @selector(caseInsensitiveCompare:)])
     {
         if (useMultipart) {
-            
+            [normalizedRequestParameters appendData:[[NSString stringWithFormat:@"--%@\r\nContent-Disposition: form-data; name=%@", boundary, key] dataUsingEncoding:NSUTF8StringEncoding]];
+            if ([key compare:@"media[]"] == NSOrderedSame) {
+                [normalizedRequestParameters appendData:[@"; filename=\"TopOfTheRockPicture.jpg\"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                [normalizedRequestParameters appendData:[@"Content-Type: image/jpg" dataUsingEncoding:NSUTF8StringEncoding]];
+            }
+            [normalizedRequestParameters appendData:[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            if ([key compare:@"media[]"] == NSOrderedSame) {
+                NSData *imageData = (NSData *)[_parameters objectForKey:key];
+                [normalizedRequestParameters appendData:imageData];
+            } else {
+                [normalizedRequestParameters appendData:[(NSString *)[_parameters objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
+            }
         } else {
             if ([normalizedRequestParameters length] != 0) {
-                [normalizedRequestParameters appendString: @"&"];
+                [normalizedRequestParameters appendData: [@"&" dataUsingEncoding:NSUTF8StringEncoding]];
             }
             
-            [normalizedRequestParameters appendString: key];
-            [normalizedRequestParameters appendString: @"="];
-            [normalizedRequestParameters appendString: [self _formEncodeString: [_parameters objectForKey: key]]];
+            [normalizedRequestParameters appendData: [key dataUsingEncoding:NSUTF8StringEncoding]];
+            [normalizedRequestParameters appendData: [@"=" dataUsingEncoding:NSUTF8StringEncoding]];
+            [normalizedRequestParameters appendData: [[self _formEncodeString: [_parameters objectForKey: key]] dataUsingEncoding:NSUTF8StringEncoding]];
         }
+    }
+    if (useMultipart) {
+        [normalizedRequestParameters appendData:[[NSString stringWithFormat:@"--%@", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
     }
     
     return normalizedRequestParameters;

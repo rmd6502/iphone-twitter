@@ -60,7 +60,7 @@
 			_request.method = @"POST";
 			_request.parameters = [NSDictionary dictionaryWithObjectsAndKeys: 
                                    _message, @"status", 
-                                   media, @"media[]",
+                                   UIImageJPEGRepresentation(media, 0.9), @"media[]",
                                    nil];
 			_request.delegate = self;		
 			[_request execute];

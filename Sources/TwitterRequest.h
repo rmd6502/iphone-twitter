@@ -42,6 +42,7 @@
 	NSMutableData* _data;
 	NSInteger _statusCode;
     BOOL useMultipart;
+    NSString *boundary;
 }
 
 @property (nonatomic,retain) TwitterConsumer* twitterConsumer;
