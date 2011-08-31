@@ -282,8 +282,18 @@
 		NSLog(@"Request failed with status code %d", _statusCode);
 		NSString* response = [[[NSString alloc] initWithData: _data encoding: NSUTF8StringEncoding] autorelease];
 		NSLog(@"Response = %@", response);
-		// TODO: Real error handling
-		[_delegate twitterRequest: self didFailWithError: nil];
+        NSRange r1 = [response rangeOfString:@"<error>"];
+        NSRange r2 = [response rangeOfString:@"</error>"];
+        NSString *errorMessage = @"Unknown problem";
+        if (r1.location != NSNotFound) {
+            r1.location += r1.length;
+            r1.length = r2.location - r1.location;
+            errorMessage = [response substringWithRange:r1];
+        }
+
+		NSError *error = [NSError errorWithDomain:@"Twitter" code:1000 
+                                         userInfo:[NSDictionary dictionaryWithObjectsAndKeys:errorMessage, NSLocalizedDescriptionKey, nil]];
+		[_delegate twitterRequest: self didFailWithError: error];
 	} else {
 		[_delegate twitterRequest: self didFinishLoadingData: _data];
 	}
