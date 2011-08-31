@@ -150,6 +150,9 @@
 		// Add the signature to the request parameters (just the call specific ones)
 				
 		NSData* requestData = [self packageParameters];
+        NSString *logData = [[NSString alloc] initWithBytesNoCopy:(void *)requestData.bytes length:requestData.length encoding:NSUTF8StringEncoding freeWhenDone:NO];
+        NSLog(@"form data: %@", logData);
+        [logData release];
 		
 		// Setup the Authorization header
 
