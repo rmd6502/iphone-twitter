@@ -211,9 +211,7 @@
         useMultipart = YES;
         boundary = @"----RmD01A";
     }
-    if (useMultipart) {
-        [normalizedRequestParameters appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding] ];
-    }
+
     for (NSString* key in [[_parameters allKeys] sortedArrayUsingSelector: @selector(caseInsensitiveCompare:)])
     {
         if (useMultipart) {

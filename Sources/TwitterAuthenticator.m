@@ -31,6 +31,7 @@
 	username = _username,
 	password = _password,
 	delegate = _delegate;
+@synthesize screen_name;
 
 #pragma mark -
 
@@ -47,6 +48,7 @@
 	[_consumer release];
 	[_username release];
 	[_password release];
+    [screen_name release];
 	[super dealloc];
 }
 
@@ -139,6 +141,7 @@
 	
 	NSString* tokenValue = [parameters valueForKey: @"oauth_token"];
 	NSString* tokenSecret = [parameters valueForKey: @"oauth_token_secret"];
+    screen_name = [[parameters valueForKey:@"screen_name"] retain];
 	
 	if (tokenValue != nil && tokenSecret != nil) {
 		TwitterToken* token = [[[TwitterToken alloc] initWithToken: tokenValue secret: tokenSecret] autorelease];

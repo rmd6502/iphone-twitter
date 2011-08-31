@@ -45,6 +45,7 @@
 
 @property (nonatomic,retain) NSString* username;
 @property (nonatomic,retain) NSString* password;
+@property (readonly)         NSString *screen_name;
 
 @property (nonatomic,assign) id<TwitterAuthenticatorDelegate> delegate;
 
